@@ -1,15 +1,15 @@
 # Image Uploader 📷
 
-フォームから画像ファイルを選択してプレビュー表示するまでの機能を実装。
-
-お試し版なのでサーバーアップロードの処理は除いています。
-
-※ 今後、気が向いたらつけた実装をコミットするかもしれない。
+フォームから画像ファイルを選択し、プレビュー表示、Firebase Storageへアップロードするだけの機能。
 
 ## 前準備 & 起動
 
 ```shell
 yarn install
+
+mv .env.example .env
+# Firebaseプロジェクトを入力して保存
+vi .env
 
 # localhost:3000
 yarn start
