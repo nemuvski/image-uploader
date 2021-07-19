@@ -1,9 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { makeStyles } from '@material-ui/core';
-
-type Props = {
-  file?: File;
-};
+import { ImageUploaderContext } from '../contexts/ImageUploaderContext';
 
 const useStyles = makeStyles({
   root: {
@@ -18,14 +15,15 @@ const useStyles = makeStyles({
   },
 });
 
-const ImageFilePreview: React.FC<Props> = ({ file }) => {
+const ImageFilePreview: React.FC = () => {
   const classes = useStyles();
+  const { targetFile } = useContext(ImageUploaderContext);
 
-  if (!file) return null;
+  if (!targetFile) return null;
 
   return (
     <div className={classes.root}>
-      <img className={classes.image} src={URL.createObjectURL(file)} alt={file.name} />
+      <img className={classes.image} src={URL.createObjectURL(targetFile)} alt={targetFile.name} />
     </div>
   );
 };

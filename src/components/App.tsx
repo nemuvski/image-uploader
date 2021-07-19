@@ -1,6 +1,7 @@
 import React from 'react';
 import ImageUploader from './ImageUploader';
 import { makeStyles } from '@material-ui/core';
+import { ImageUploaderProvider } from '../contexts/ImageUploaderContext';
 
 const useStyles = makeStyles({
   root: {
@@ -19,7 +20,9 @@ const App: React.FC = () => {
 
   return (
     <div className={classes.root}>
-      <ImageUploader />
+      <ImageUploaderProvider>
+        <ImageUploader />
+      </ImageUploaderProvider>
     </div>
   );
 };
