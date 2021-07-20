@@ -7,7 +7,7 @@
 ```shell
 yarn install
 
-mv .env.example .env
+cp .env.example .env
 # Firebaseプロジェクトを入力して保存
 vi .env
 
