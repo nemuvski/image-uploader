@@ -4,6 +4,9 @@ import { CssBaseline } from '@material-ui/core';
 import App from './components/App';
 import reportWebVitals from './reportWebVitals';
 
+// react-cropper
+import 'cropperjs/dist/cropper.css';
+
 ReactDOM.render(
   <React.StrictMode>
     <CssBaseline />
