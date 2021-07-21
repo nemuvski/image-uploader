@@ -20,7 +20,7 @@ module.exports = {
   plugins: ['react', '@typescript-eslint'],
   rules: {
     'comma-dangle': ['error', 'only-multiline'],
-    'multiline-ternary': ['error', 'never'],
+    'multiline-ternary': ['error', 'always'],
     semi: ['error', 'always'],
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': ['error'],

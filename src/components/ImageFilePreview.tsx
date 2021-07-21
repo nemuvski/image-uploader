@@ -17,13 +17,13 @@ const useStyles = makeStyles({
 
 const ImageFilePreview: React.FC = () => {
   const classes = useStyles();
-  const { targetFile } = useContext(ImageUploaderContext);
+  const { targetFile, croppedImageData } = useContext(ImageUploaderContext);
 
   if (!targetFile) return null;
 
   return (
     <div className={classes.root}>
-      <img className={classes.image} src={URL.createObjectURL(targetFile)} alt={targetFile.name} />
+      <img className={classes.image} src={croppedImageData ?? URL.createObjectURL(targetFile)} alt={targetFile.name} />
     </div>
   );
 };

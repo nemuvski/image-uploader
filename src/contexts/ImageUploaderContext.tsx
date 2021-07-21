@@ -6,35 +6,50 @@ export const ImageUploaderScreen = {
   INITIAL: 'initial',
   PREVIEW: 'preview',
   UPLOADING: 'uploading',
+  CROPPING: 'cropping',
   DONE: 'done',
 } as const;
 export type ImageUploaderScreenType = typeof ImageUploaderScreen[keyof typeof ImageUploaderScreen];
 
 type ContextProps = {
-  screen: ImageUploaderScreenType;
-  targetFile: File | undefined;
+  currentScreen: ImageUploaderScreenType;
+  setScreen: (screen: ImageUploaderScreenType) => void;
+  targetFile?: File;
   setFile: (file: File) => void;
   clearFile: () => void;
   uploadFile: () => void;
   uploadProgress: number;
+  croppedImageData?: string;
+  setCroppedImageData: (data: string) => void;
   errorMessage: string | undefined;
 };
 
 export const ImageUploaderContext = createContext<ContextProps>({
-  screen: ImageUploaderScreen.INITIAL,
+  currentScreen: ImageUploaderScreen.INITIAL,
+  setScreen: () => undefined,
   targetFile: undefined,
-  setFile: () => {},
-  clearFile: () => {},
-  uploadFile: () => {},
+  setFile: () => undefined,
+  clearFile: () => undefined,
+  uploadFile: () => undefined,
+  croppedImageData: undefined,
+  setCroppedImageData: () => undefined,
   uploadProgress: 0,
   errorMessage: undefined,
 });
 
 export const ImageUploaderProvider: React.FC = ({ children }) => {
-  const [screen, setScreen] = useState<ImageUploaderScreenType>(ImageUploaderScreen.INITIAL);
+  const [currentScreen, setCurrentScreen] = useState<ImageUploaderScreenType>(ImageUploaderScreen.INITIAL);
   const [targetFile, setTargetFile] = useState<File | undefined>();
+  const [croppedImage, setCroppedImage] = useState<string | undefined>();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+
+  /**
+   * スクリーンを設定
+   *
+   * @param screen スクリーン識別子
+   */
+  const setScreen = (screen: ImageUploaderScreenType) => setCurrentScreen(screen);
 
   /**
    * 対象とするFileオブジェクトを設定
@@ -46,11 +61,11 @@ export const ImageUploaderProvider: React.FC = ({ children }) => {
     if (file.size > 1024 * 1024) {
       setErrorMessage('The selected file is larger than 1MB.');
       setTargetFile(undefined);
-      setScreen(ImageUploaderScreen.INITIAL);
+      setCurrentScreen(ImageUploaderScreen.INITIAL);
     } else {
       setErrorMessage(undefined);
       setTargetFile(file);
-      setScreen(ImageUploaderScreen.PREVIEW);
+      setCurrentScreen(ImageUploaderScreen.PREVIEW);
     }
   };
 
@@ -59,19 +74,33 @@ export const ImageUploaderProvider: React.FC = ({ children }) => {
    */
   const clearFile = () => {
     setTargetFile(undefined);
+    setCroppedImage(undefined);
     setErrorMessage(undefined);
-    setScreen(ImageUploaderScreen.INITIAL);
+    setCurrentScreen(ImageUploaderScreen.INITIAL);
   };
 
   /**
    * 対象とするファイルをアップロードする
    */
-  const uploadFile = () => {
+  const uploadFile = async () => {
     // 未選択の状態のときは処理しない
     if (!targetFile) return;
     setUploadProgress(0);
-    setScreen(ImageUploaderScreen.UPLOADING);
-    const uploadTask = publicStorageRef.child(targetFile.name).put(targetFile);
+    setCurrentScreen(ImageUploaderScreen.UPLOADING);
+
+    const timestamp = new Date().getTime();
+    // 拡張子の決定 (※ トリミング画像はJPEGフォーマットで保存する)
+    let extension = '';
+    if (targetFile.type === 'image/jpeg' || croppedImage) extension = '.jpg';
+    else if (targetFile.type === 'image/png') extension = '.png';
+
+    const fileName = `${timestamp}${extension}`;
+
+    // トリミング処理した画像データがある場合は、トリミング後の画像をアップロードする
+    const uploadTask = croppedImage
+      ? publicStorageRef.child(fileName).putString(croppedImage, 'data_url')
+      : publicStorageRef.child(fileName).put(targetFile);
+
     uploadTask.on(
       firebase.storage.TaskEvent.STATE_CHANGED,
       (snapshot) => setUploadProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
@@ -81,19 +110,29 @@ export const ImageUploaderProvider: React.FC = ({ children }) => {
         setUploadProgress(100);
       },
       () => {
-        setScreen(ImageUploaderScreen.DONE);
+        setCurrentScreen(ImageUploaderScreen.DONE);
       }
     );
   };
 
+  /**
+   * トリミング処理して得られた画像データ
+   *
+   * @param data 画像データ
+   */
+  const setCroppedImageData = (data: string) => setCroppedImage(data);
+
   return (
     <ImageUploaderContext.Provider
       value={{
-        screen,
+        currentScreen,
+        setScreen,
         targetFile,
         setFile,
         clearFile,
         uploadFile,
+        croppedImageData: croppedImage,
+        setCroppedImageData,
         uploadProgress,
         errorMessage,
       }}
