@@ -17,7 +17,7 @@ const CroppingScreen: React.FC = () => {
   const cropperRef = useRef<ReactCropperElement>(null);
 
   /**
-   * OKボタン効果
+   * OKボタン押下時のイベント
    */
   const handleClickOkButton = () => {
     const imageElement = cropperRef?.current;
