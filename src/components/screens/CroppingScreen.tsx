@@ -22,7 +22,15 @@ const CroppingScreen: React.FC = () => {
   const handleClickOkButton = () => {
     const imageElement = cropperRef?.current;
     if (!imageElement) return;
-    setCroppedImageData(imageElement.cropper.getCroppedCanvas().toDataURL('image/jpeg', 0.9));
+    imageElement.cropper.getCroppedCanvas().toBlob(
+      (blob) => {
+        if (blob) {
+          setCroppedImageData(blob);
+        }
+      },
+      'image/jpeg',
+      0.9
+    );
     setScreen(ImageUploaderScreen.PREVIEW);
   };
 

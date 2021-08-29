@@ -23,7 +23,7 @@ const ImageFilePreview: React.FC = () => {
 
   return (
     <div className={classes.root}>
-      <img className={classes.image} src={croppedImageData ?? URL.createObjectURL(targetFile)} alt={targetFile.name} />
+      <img className={classes.image} src={URL.createObjectURL(croppedImageData ?? targetFile)} alt={targetFile.name} />
     </div>
   );
 };
