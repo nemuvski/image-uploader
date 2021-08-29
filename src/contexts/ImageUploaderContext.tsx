@@ -1,5 +1,5 @@
 import React, { createContext, useState } from 'react';
-import firebase from 'firebase/app';
+import { uploadBytesResumable, ref } from 'firebase/storage';
 import { publicStorageRef } from '../libs/Firebase';
 
 export const ImageUploaderScreen = {
@@ -19,8 +19,8 @@ type ContextProps = {
   clearFile: () => void;
   uploadFile: () => void;
   uploadProgress: number;
-  croppedImageData?: string;
-  setCroppedImageData: (data: string) => void;
+  croppedImageData?: Blob;
+  setCroppedImageData: (data: Blob) => void;
   errorMessage: string | undefined;
 };
 
@@ -40,7 +40,7 @@ export const ImageUploaderContext = createContext<ContextProps>({
 export const ImageUploaderProvider: React.FC = ({ children }) => {
   const [currentScreen, setCurrentScreen] = useState<ImageUploaderScreenType>(ImageUploaderScreen.INITIAL);
   const [targetFile, setTargetFile] = useState<File | undefined>();
-  const [croppedImage, setCroppedImage] = useState<string | undefined>();
+  const [croppedImage, setCroppedImage] = useState<Blob | undefined>();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -82,7 +82,7 @@ export const ImageUploaderProvider: React.FC = ({ children }) => {
   /**
    * 対象とするファイルをアップロードする
    */
-  const uploadFile = async () => {
+  const uploadFile = () => {
     // 未選択の状態のときは処理しない
     if (!targetFile) return;
     setUploadProgress(0);
@@ -97,12 +97,8 @@ export const ImageUploaderProvider: React.FC = ({ children }) => {
     const fileName = `${timestamp}${extension}`;
 
     // トリミング処理した画像データがある場合は、トリミング後の画像をアップロードする
-    const uploadTask = croppedImage
-      ? publicStorageRef.child(fileName).putString(croppedImage, 'data_url')
-      : publicStorageRef.child(fileName).put(targetFile);
-
-    uploadTask.on(
-      firebase.storage.TaskEvent.STATE_CHANGED,
+    uploadBytesResumable(ref(publicStorageRef, fileName), croppedImage ?? targetFile).on(
+      'state_changed',
       (snapshot) => setUploadProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100),
       (error) => {
         console.error(error);
@@ -120,7 +116,7 @@ export const ImageUploaderProvider: React.FC = ({ children }) => {
    *
    * @param data 画像データ
    */
-  const setCroppedImageData = (data: string) => setCroppedImage(data);
+  const setCroppedImageData = (data: Blob) => setCroppedImage(data);
 
   return (
     <ImageUploaderContext.Provider

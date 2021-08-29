@@ -1,5 +1,5 @@
-import firebase from 'firebase/app';
-import 'firebase/storage';
+import { initializeApp } from 'firebase/app';
+import { getStorage, ref } from 'firebase/storage';
 
 const config = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -11,10 +11,10 @@ const config = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
-const app = firebase.initializeApp(config);
-const storage = app.storage();
+const app = initializeApp(config);
+const storage = getStorage(app);
 
 /**
  * publicディレクトリのReference
  */
-export const publicStorageRef = storage.ref('public/');
+export const publicStorageRef = ref(storage, 'public/');
